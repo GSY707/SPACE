@@ -1,0 +1,181 @@
+#include<iostream>
+using namespace std;
+const long double g3 = 1.7320508075688772935274463415059;
+const long double g2 = 1.4142135623730950488016887242096;
+const int m = 100;//space
+const int n = 200;//photo
+class pl {//位置 
+public:
+	double x, y, z;
+	pl(double xx=0,double yy=0,double zz=0)
+	{
+		x = xx, y = yy, z = zz;
+	}
+	friend double howlong(const pl a, const  pl b)
+	{
+		return sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y) + (a.z - b.z) * (a.z - b.z));
+	}
+	pl operator+(const pl a)const
+	{
+		return pl(x + a.x, y + a.y, z + a.z);
+	}
+};
+class co {//颜色 0~255
+public:
+	double re, gr, bl;
+	co(const double ina = 0, const double inb = 0, const double inc = 0) {// 初始化
+		re = ina;
+		gr = inb;
+		bl = inc;
+	}
+	co operator+(const co& next)const {// +
+		int a = 255, b = 255, c = 255;
+		if (re + next.re < a) a = re + next.re;
+		if (gr + next.gr < b) b = gr + next.gr;
+		if (bl + next.bl < c) c = bl + next.bl;
+		return co(a, b, c);
+	}
+
+	co operator-(const co& next)const {// -
+		int a = 0, b = 0, c = 0;
+		if (re - next.re > a) a = re - next.re;
+		if (gr - next.gr > b) b = gr - next.gr;
+		if (bl - next.bl > c) c = bl - next.bl;
+		return co(a, b, c);
+	}
+	co operator*(const double& in)const {// *
+		int a = 255, b = 255, c = 255;
+		if (re * in < a) a = re * in;
+		if (gr * in < b) b = gr * in;
+		if (bl * in < c) c = bl * in;
+		return co(a, b, c);
+	}
+	co operator/(const double& next)const {// /
+		return co(re / next, gr / next, bl / next);
+	}
+};
+co a[m][m][m];
+bool b[m][m][m];
+double fzs[3];//左上 
+double fys[3];//右上 
+double fzx[3];//左下 
+double fyx[3];//右下 
+co f[n][n];//photo
+double x, y;//向上的角度，水平角度（右为正）
+pl move;//中点位移
+inline void point(pl a, co b)//____________
+{
+	int x = int(a.x);
+	int y = int(a.y);
+	int z = int(a.z);
+	double xc = a.x - x;
+	double yc = a.y - y;
+	double zc = a.z - z;
+	double all = 0;
+	double llong[8];
+	llong[0]=sqrt((1 - xc) * (1 - xc) + (1 - yc) * (1 - yc) + (1 - zc) * (1 - zc));
+	llong[1]=sqrt((xc) * (xc)+(1 - yc) * (1 - yc) + (1 - zc) * (1 - zc));
+	llong[2]=sqrt((1 - xc) * (1 - xc) + (yc) * (yc)+(1 - zc) * (1 - zc));
+	llong[3]=sqrt((1 - xc) * (1 - xc) + (1 - yc) * (1 - yc) + (zc) * (zc));
+	llong[4]=sqrt((xc) * (xc)+(yc) * (yc)+(1 - zc) * (1 - zc));
+	llong[5]=sqrt((xc) * (xc)+(1 - yc) * (1 - yc) + (zc) * (zc));
+	llong[6]=sqrt((xc) * (xc)+(yc) * (yc)+(1 - zc) * (1 - zc));
+	llong[7]=sqrt((xc) * (xc)+(yc) * (yc)+(zc) * (zc));
+	::a[x][y][z] = b * (llong[0] / all);
+	::a[x + 1][y][z] = b * (llong[1] / all);
+	::a[x][y + 1][z] = b * (llong[2] / all);
+	::a[x][y][z + 1] = b * (llong[3] / all);
+	::a[x + 1][y + 1][z] = b * (llong[4] / all);
+	::a[x + 1][y][z + 1] = b * (llong[5] / all);
+	::a[x + 1][y + 1][z] = b * (llong[6] / all);
+	::a[x + 1][y + 1][z + 1] = b * (llong[7] / all);
+	::b[x][y][z] = 1;
+	::b[x + 1][y][z] = 1;
+	::b[x][y + 1][z] = 1;
+	::b[x][y][z + 1] = 1;
+	::b[x][y + 1][z + 1] = 1;
+	::b[x + 1][y][z + 1] = 1;
+	::b[x + 1][y + 1][z] = 1;
+	::b[x + 1][y + 1][z + 1] = 1;
+}
+
+inline void line(pl a, pl b,co c)
+{
+	double x, y, z, x1, y1, z1;
+	double ll = sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y) + (a.z - b.z) * (a.z - b.z));
+	x = (a.x - b.x) / ll;
+	y = (a.y - b.y) / ll;
+	z = (a.z - b.z) / ll;
+	x1 = a.x, y1 = a.y, z1 = a.z;
+	for (int i=0;i<=ll;i++)
+	{
+		
+		point(pl(x1, y1, z1), c);
+		x1 += x, y1 += y, z1 += z;
+	}
+	return;
+}
+void face(pl a, pl b, pl c,co d)
+{
+	pl a1, b1;
+	double ll = howlong(a, c);//延ac重复作ab
+	pl tmp = pl((a.x - c.x) / ll, (a.y - c.y) / ll, (a.z - c.z) / ll);
+	for (int i = 0; i <= ll; i++)
+	{
+		a1 = a, b1 = b;
+		line(a1, b1, d);
+		a1 = a1 + tmp;
+		b1 = b1 + tmp;
+	}
+	return;
+}
+void getphoto()
+{
+	cout<<"?/n";
+}
+
+void freshphoto()
+{
+	cout<<"?/n";
+}
+co getphoto3(pl from,pl to)
+{
+	double x, y, z, x1, y1, z1;
+	double ll = sqrt((from.x - to.x) * (from.x - to.x) + (from.y - to.y) * (from.y - to.y) + (from.z - to.z) * (from.z - to.z));
+	int signx=from.x>to.x?1:-1;
+	int signy=from.y>to.y?1:-1;
+	int signz=from.z>to.z?1:-1;
+	x = (from.x - to.x) / ll;
+	y = (from.y - to.y) / ll;
+	z = (from.z - to.z) / ll;
+	x1 = from.x, y1 = from.y, z1 = from.z;
+	while ( (signx>0&&x1>0||signx<0&&x1>m)&&
+	      (signy>0&&y1>0||signy<0&&y1>m)&&
+	      (signz>0&&z1>0||signz<0&&z1>m)   )//in the space?
+	{
+	
+		if(b[int(x1)][int(y1)][int(z1)])//find a colour,return a colour
+		{
+			x1 += x, y1 += y, z1 += z;
+			double re,gr,bl;
+			int xx=(int)x1,yy=(int)y1,zz=(int)z1;
+			re=a[xx][yy][zz].re+a[xx+1][yy][zz].re+a[xx][yy+1][zz].re+a[xx][yy][zz+1].re
+			   +a[xx][yy+1][zz+1].re+a[xx+1][yy][zz+1].re+a[xx+1][yy+1][zz].re+a[xx+1][yy+1][zz+1].re;
+			gr=a[xx][yy][zz].gr+a[xx+1][yy][zz].gr+a[xx][yy+1][zz].gr+a[xx][yy][zz+1].gr
+			   +a[xx][yy+1][zz+1].gr+a[xx+1][yy][zz+1].gr+a[xx+1][yy+1][zz].gr+a[xx+1][yy+1][zz+1].gr;
+			bl=a[xx][yy][zz].bl+a[xx+1][yy][zz].bl+a[xx][yy+1][zz].bl+a[xx][yy][zz+1].bl
+			   +a[xx][yy+1][zz+1].bl+a[xx+1][yy][zz+1].bl+a[xx+1][yy+1][zz].bl+a[xx+1][yy+1][zz+1].bl;
+			return(co(re,gr,bl));
+		}
+		
+		x1 += x, y1 += y, z1 += z;
+	}
+	return co(0,0,0);
+}
+int main()
+{
+	cin.get();
+	cin.get();
+
+	return 0;
+}
