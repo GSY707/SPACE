@@ -123,16 +123,43 @@ void face(pl a, pl b, pl c,co d)
 	}
 	return;
 }
-void getphoto()
+void getphoto1(pl d)//from point to face.1,2,3是面位置，d是点位置
 {
-	cout<<"?/n";
+	pl a,b,c;//抄一下void face
+	a=fzs, b=fzx, c=fys;
+	pl a1, b1;
+	double ll = howlong(a, c);
+	pl tmp = pl((a.x - c.x) / ll, (a.y - c.y) / ll, (a.z - c.z) / ll);
+	for (int i = 0; i <= ll; i++)
+	{
+		a1 = a, b1 = b;
+		
+		{//抄一下void line
+			double a=a1,b=a1;
+			double x, y, z, x1, y1, z1;
+			double ll = sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y) + (a.z - b.z) * (a.z - b.z));
+			x = (a.x - b.x) / ll;
+			y = (a.y - b.y) / ll;
+			z = (a.z - b.z) / ll;
+			x1 = a.x, y1 = a.y, z1 = a.z;
+			for (int i=0;i<=ll;i++)
+			{
+			f[::i][i]=getpoint(d, pl(x1, y1, z1))
+			x1 += x, y1 += y, z1 += z;
+			}
+		}
+		
+		a1 = a1 + tmp;
+		b1 = b1 + tmp;
+	}
+	return;
 }
 
 void freshphoto()
 {
 	cout<<"?/n";
 }
-co freshpoint(pl from,pl to)
+co getpoint(pl from,pl to)
 {
 	double x, y, z, x1, y1, z1;
 	double ll = sqrt((from.x - to.x) * (from.x - to.x) + (from.y - to.y) * (from.y - to.y) + (from.z - to.z) * (from.z - to.z));
