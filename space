@@ -25,14 +25,16 @@ class co {//颜色 0~255
 public:
 	double re, gr, bl;//红，绿，蓝
 	double light;//亮度
-	co(const double ina = 0, const double inb = 0, const double inc = 0， const double inlight = 0) {// 初始化
+	co(const double ina = 0, const double inb = 0, const double inc = 0, const double inlight = 0) {// 初始化
 		re = ina;
 		gr = inb;
 		bl = inc;
 		light=inlight;
 	}
-	co light(double const& in)
+	co changelight(const double in)
+	{
 		light=in;
+	}
 	
 	co operator+(const co& next)const {// +  把颜色涂深
 		int a = 255, b = 255, c = 255;
@@ -62,19 +64,19 @@ public:
 };
 co a[m][m][m];//颜色空间
 bool b[m][m][m];//存储点是否已用
-double fzs[3];//成像起始点  左上 
-double fys[3];//成像起始点  右上 
-double fzx[3];//成像起始点  左下 
-double fyx[3];//成像起始点  右下 
+pl fzs;//成像起始点  左上 
+pl fys;//成像起始点  右上 
+pl fzx;//成像起始点  左下 
+pl fyx;//成像起始点  右下 
 co f[n][n];//photo  存成像结果
 double x, y;//向上的角度，水平角度（右为正）
 pl move;//中点位移
 inline bool point(pl a, co b)//涂点
 {
-	if((x<=m&&x=>0)&&(y<=m&&y=>0)&&(z<=m&&z=>0)) return;//出界了
 	int x = int(a.x);
 	int y = int(a.y);
 	int z = int(a.z);
+	if((x<=m&&x>=0)&&(y<=m&&y>=0)&&(z<=m&&z>=0)) return 0;//出界了
 	::a[x][y][z] = b;//涂色
 	::a[x + 1][y][z] = b;
 	::a[x][y + 1][z] = b;
@@ -123,42 +125,6 @@ void face(pl a, pl b, pl c,co d)
 	}
 	return;
 }
-void getphoto1(pl d)//from point to face.1,2,3是面位置，d是点位置
-{
-	pl a,b,c;//抄一下void face
-	a=fzs, b=fzx, c=fys;
-	pl a1, b1;
-	double ll = howlong(a, c);
-	pl tmp = pl((a.x - c.x) / ll, (a.y - c.y) / ll, (a.z - c.z) / ll);
-	for (int i = 0; i <= ll; i++)
-	{
-		a1 = a, b1 = b;
-		
-		{//抄一下void line
-			double a=a1,b=a1;
-			double x, y, z, x1, y1, z1;
-			double ll = sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y) + (a.z - b.z) * (a.z - b.z));
-			x = (a.x - b.x) / ll;
-			y = (a.y - b.y) / ll;
-			z = (a.z - b.z) / ll;
-			x1 = a.x, y1 = a.y, z1 = a.z;
-			for (int i=0;i<=ll;i++)
-			{
-			f[::i][i]=getpoint(d, pl(x1, y1, z1))
-			x1 += x, y1 += y, z1 += z;
-			}
-		}
-		
-		a1 = a1 + tmp;
-		b1 = b1 + tmp;
-	}
-	return;
-}
-
-void freshphoto()
-{
-	cout<<"?/n";
-}
 co getpoint(pl from,pl to)
 {
 	double x, y, z, x1, y1, z1;
@@ -191,6 +157,43 @@ co getpoint(pl from,pl to)
 	}
 	return co(0,0,0);
 }
+void getphoto1(pl d)//from point to face.1,2,3是面位置，d是点位置
+{
+	pl a,b,c;//抄一下void face
+	a=fzs, b=fzx, c=fys;
+	pl a1, b1;
+	double ll = howlong(a, c);
+	pl tmp = pl((a.x - c.x) / ll, (a.y - c.y) / ll, (a.z - c.z) / ll);
+	for (int j = 0; j <= ll; j++)
+	{
+		a1 = a, b1 = b;
+		
+		{//抄一下void line
+			pl a=a1,b=a1;
+			double x, y, z, x1, y1, z1;
+			double ll = sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y) + (a.z - b.z) * (a.z - b.z));
+			x = (a.x - b.x) / ll;
+			y = (a.y - b.y) / ll;
+			z = (a.z - b.z) / ll;
+			x1 = a.x, y1 = a.y, z1 = a.z;
+			for (int i=0;i<=ll;i++)
+			{
+			f[j][i]=getpoint(d, pl(x1, y1, z1));
+			x1 += x, y1 += y, z1 += z;
+			}
+		}
+		
+		a1 = a1 + tmp;
+		b1 = b1 + tmp;
+	}
+	return;
+}
+
+void freshphoto()
+{
+	cout<<"?/n";
+}
+
 int main()
 {
 	cin.get();
